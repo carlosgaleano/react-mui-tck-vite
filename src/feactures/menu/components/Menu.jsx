@@ -1,5 +1,5 @@
-import * as React from 'react';
-import {useState} from 'react';
+import React, { useEffect } from 'react';
+import { useState } from 'react';
 import PropTypes from 'prop-types';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -13,7 +13,13 @@ import { AppProvider } from '@toolpad/core/AppProvider';
 import { DashboardLayout } from '@toolpad/core/DashboardLayout';
 import { useDemoRouter } from '@toolpad/core/internal';
 import DashboardDespachos from '../../Dashboard/components/DashboardDespachos';
-import { Button } from '@mui/material'; 
+import PageContent from './PageContent';
+
+
+
+function DashboardLayoutBasic(props) {
+
+
 
 const NAVIGATION = [
   {
@@ -24,14 +30,12 @@ const NAVIGATION = [
     segment: 'dashboard',
     title: 'Dashboard',
     icon: <DashboardIcon />,
-    onClick: (setActiveComponent) => { // Recibe setActiveComponent como argumento
-      setActiveComponent('1','despachos');
-    }
   },
   {
     segment: 'orders',
     title: 'Orders',
     icon: <ShoppingCartIcon />,
+  
   },
   {
     kind: 'divider',
@@ -49,11 +53,13 @@ const NAVIGATION = [
         segment: 'sales',
         title: 'Sales',
         icon: <DescriptionIcon />,
+      
       },
       {
         segment: 'traffic',
         title: 'Traffic',
         icon: <DescriptionIcon />,
+       
       },
     ],
   },
@@ -61,6 +67,7 @@ const NAVIGATION = [
     segment: 'integrations',
     title: 'Integrations',
     icon: <LayersIcon />,
+   
   },
 ];
 
@@ -80,72 +87,59 @@ const demoTheme = createTheme({
   },
 });
 
-function DemoPageContent({ pathname, activeComponent }) { // Recibe activeComponent
 
-  console.log('activeComponent:', activeComponent);
-  return (
-    <Box
-      sx={{
-        py: 4,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        textAlign: 'center',
-      }}
-    >
-      {activeComponent === 'despachos' ? (
-        <DashboardDespachos /> // Renderiza DashboardDespachos
-      ) : (
-        <Typography>Dashboard content for {pathname}</Typography> // Contenido por defecto
-      )}
-    </Box>
-  );
-}
 
-DemoPageContent.propTypes = {
+PageContent.propTypes = {
   pathname: PropTypes.string.isRequired,
-  activeComponent: PropTypes.string.isRequired, // Agrega la prop
+  activeComponent: PropTypes.string.isRequired,
 };
 
 
 
-function DashboardLayoutBasic(props) {
+
   const { window } = props;
-
-
-
   const router = useDemoRouter('/dashboard');
-  const [activeComponent, setActiveComponent] = useState('default');
 
-  // Remove this const when copying and pasting into your project.
+
   const demoWindow = window !== undefined ? window() : undefined;
 
+  // Asigna setActiveComponent a cada onClick en NAVIGATION
+  const navigationWithHandlers = NAVIGATION.map((item) => {
+    if (item.onClick) {
+      return {
+        ...item,
+      //  onClick: item.onClick(setActiveComponent), // Pasa setActiveComponent a onClick
+       
+      };
+      
+    }
+    return item;
+  });
 
   return (
-    // preview-start
+    <>
+
+
     <AppProvider
-      navigation={NAVIGATION}
+      navigation={NAVIGATION} // Usa navigationWithHandlers
       router={router}
       theme={demoTheme}
       window={demoWindow}
-      setActiveComponent={setActiveComponent} // Pasa setActiveComponent
     >
       <DashboardLayout>
-        <DemoPageContent
+        <PageContent
           pathname={router.pathname}
-          activeComponent={activeComponent}
+        
+      
+          // Pasa activeComponent a DemoPageContent
         />
       </DashboardLayout>
     </AppProvider>
-    // preview-end
+     </>
   );
 }
 
 DashboardLayoutBasic.propTypes = {
-  /**
-   * Injected by the documentation to work in an iframe.
-   * Remove this when copying and pasting into your project.
-   */
   window: PropTypes.func,
 };
 

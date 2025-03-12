@@ -1,152 +1,109 @@
-import {useState,useEffect} from 'react';
-import DataTable from "react-data-table-component";
-import Button from 'react-bootstrap/Button';
-import {useEffectDespachos} from '../hooks/useFetchDespachos';
+import React, { useState, useEffect } from 'react';
+import { DataGrid, GridToolbar } from '@mui/x-data-grid';
+import Button from '@mui/material/Button';
+import { useEffectDespachos } from '../hooks/useFetchDespachos';
 import Loading from '../../menu/components/Loading';
 import { NavPagination } from '../../menu/components/NavPagination';
 import DespachosDetalle from './DespachosDetalle';
-import { TbListDetails } from "react-icons/tb";
+import { TbListDetails } from 'react-icons/tb';
 import ExcelReader from './ExcelReader';
 import FiltroDespachos from './FiltroDespachos';
-import {useAuthStore} from '../../../feactures/auth/store/auth'; 
+import { useAuthStore } from '../../../feactures/auth/store/auth';
+import { Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 
-
-
- const DataGridDespachos = ()=>{
-
+const DataGridDespachos = () => {
   const [modalShow, setModalShow] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
-  const [dataTable1, setData]=useState([]);
-  const { loading, setLoading } = useAuthStore();
+  const [dataTable1, setData] = useState([]);
+  const { loading } = useAuthStore();
+  const [page, setpage] = useState(1);
 
- const [page, setpage] = useState(1);
- //const [pending, setPending] = useState(true);
- //const [refresh, setRefresh] = useState(0);
+  const { data, currentPage, totalrow, totalPage, rowsPerPage } = useEffectDespachos(page, null, null);
 
- 
+  useEffect(() => {
+    if (data) {
+      setData(data);
+    }
+  }, [data]);
 
+  const showData = (row) => {
+    setSelectedRow(row);
+    setModalShow(true);
+  };
 
-const {data,currentPage:currentPage,totalrow,totalPage,rowsPerPage}= useEffectDespachos(page,null,null);
-
-useEffect(()=>{
-
-if(data){
-setData(data)
-}
-
-}, [data]); 
-
-
-const showData=(row)=>{
-  console.log('Selected row:', row); 
-  // Handle the selected row data here
-  //setSelectedRow(row); 
- setSelectedRow(row);
- setModalShow(true);
-
-}
-
-console.log('datos,',data[1]);
-console.log('page actual',currentPage);
-const columns = [
-    {
-      name: "Orden de Entrega",
-      selector: (row) => row.sap_id,
+  const columns = [
+    { field: 'sap_id', headerName: 'Orden de Entrega', width: 150 },
+    { field: 'Despacho_ID', headerName: 'Id FullStar', width: 150 },
+    { field: 'Nombre', headerName: 'Titulo', width: 200 },
+    { field: 'Direccion', headerName: 'Dirección', width: 250 },
+    {field: 'fecha_st',
+    headerName: 'Fecha despacho',
+    type: 'dateTime',
+    valueGetter: (params) => {
+      if (params.row && params.row.fecha_st) {
+        return new Date(params.row.fecha_st);
+      }
+      return null; // Or some default value
     },
+    sortable: true,
+  },
+    { field: 'estado_out', headerName: 'Estado', width: 150 },
     {
-      name: "Id FullStar",
-      selector: (row) => row.Despacho_ID,
-   
-    },
-    {
-      name: "Titulo",
-      selector: (row) => row.Nombre,
-    },
-    {
-      name: "Dirección",
-      selector: (row) => row.Direccion,
-    },
-    {
-      name: "Fecha despacho",
-      selector: (row) => row.fecha_st,
-      format: "datetime",
-      sortable: true,
-    },
-    {
-      name: "Estado",
-      selector: (row) => row.estado_out,
-    },
-    {
-      name: 'Detalle',
-      button: true,
-      cell: (row) => <Button onClick={() => {
-        showData(row); 
-        
-      }}><TbListDetails /></Button>,
+      field: 'actions',
+      headerName: 'Detalle',
+      width: 100,
+      renderCell: (params) => (
+        <Button onClick={() => showData(params.row)}>
+          <TbListDetails />
+        </Button>
+      ),
     },
   ];
 
+  return (
+    <>
+      <Dialog open={modalShow} onClose={() => setModalShow(false)} maxWidth="md" fullWidth>
+        <DialogTitle>Detalle del Despacho</DialogTitle>
+        <DialogContent>
+          {selectedRow && <DespachosDetalle row={selectedRow} />}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setModalShow(false)}>Cerrar</Button>
+        </DialogActions>
+      </Dialog>
 
+      <FiltroDespachos setData={setData} />
 
+      <>
+        <h1>Lector de Excel</h1>
+        <ExcelReader />
+      </>
 
-    return (
-        <>
+      <p className="d-inline ml-2">
+        <i className="bi bi-bar-chart text-info" style={{ fontSize: 40 }}></i>
+      </p>
 
+      <div style={{ height: 400, width: '100%' }}>
+      <DataGrid
+        rows={dataTable1}
+        columns={columns}
+        getRowId={(row) => row.Despacho_ID} // Ensure a unique ID
+        loading={loading}
+        components={{
+            LoadingOverlay: Loading,
+            Toolbar: GridToolbar,
+        }}
+        pagination
+        pageSize={rowsPerPage}
+        rowsPerPageOptions={[rowsPerPage]}
+        page={currentPage - 1}
+        onPageChange={(newPage) => setpage(newPage + 1)}
+    />
+      </div>
 
+      <NavPagination data={{ setpage, totalrow, totalPage, currentPage }} />
+    </>
+  );
+};
 
-  {/* Renderizado condicional del modal */}
-  {modalShow && ( // Solo se renderiza si modalShow es true
-               <>
-               <DespachosDetalle
-                    show={modalShow}
-                    onHide={() => {
-                        setModalShow(false);
-                        setSelectedRow(null); // Limpiar la fila seleccionada al cerrar el modal
-                    }}
-                    row={selectedRow}
-                />
-             
-
-            </>
-            )}
-
-<FiltroDespachos setData={setData} />
-
-
-
-          
-
-           
-
-          <> <h1>Lector de Excel</h1>
-          <ExcelReader />
-         </>
-
-          <p className="d-inline  ml-2" >
-            <i className="bi bi-bar-chart text-info" style={{ fontSize: 40 }}></i>
-          </p>
-          
-          <DataTable
-            title=" Despachos"
-            columns={columns}
-            data={dataTable1}
-            progressPending={loading}
-            progressComponent={<Loading />}
-            //pagination
-            //paginationComponent={BootyPagination}
-            selectableRows
-           /* onRowClicked={(row) => {
-              showData(row); 
-              
-            }} */// Use onRowClicked prop
-            //selectableRowsComponent={BootyCheckbox}
-          />
-         
-           <NavPagination data={{setpage,totalrow,totalPage,currentPage}} />
-
-        </>
-      );
-    };
-    
-    export default DataGridDespachos;
-    
+export default DataGridDespachos;

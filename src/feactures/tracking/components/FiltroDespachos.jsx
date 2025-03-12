@@ -1,84 +1,84 @@
-import { useEffect } from "react";
-import { Form, InputGroup, Button, Row, Col } from "react-bootstrap";
-import {useState} from 'react';
-import {useEffectDespachosFilter} from '../hooks/useFetcDespachoFilter';
-import { GrClearOption } from "react-icons/gr";
-import ExportExcel from "./ExcelExport";
+import  { useState, useEffect } from 'react';
+import {
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Button,
+  Grid,
+  Box,
+  IconButton,
+} from '@mui/material';
+import { useEffectDespachosFilter } from '../hooks/useFetcDespachoFilter';
+import { GrClearOption } from 'react-icons/gr';
+import ExportExcel from './ExcelExport';
 
-
-const FiltroDespachos = ({setData}) => {
-
-  const [idConsulta, setIdConsulta] = useState("");
-  const [idSelect, setIdSelect] = useState("1");
+const FiltroDespachos = ({ setData }) => {
+  const [idConsulta, setIdConsulta] = useState('');
+  const [idSelect, setIdSelect] = useState('1');
   const [page, setPage] = useState(1);
-  const [refresh, setRefresh] = useState(0); // Nuevo estado para refrescar
+  const [refresh, setRefresh] = useState(0);
 
-  
-
-  
   const consultaData = useEffectDespachosFilter(page, idConsulta, idSelect, refresh);
 
   const consultarDespacho = () => {
-    if ( !idSelect) return;
-   
-    setRefresh(prev => prev + 1); // Forzar nueva búsqueda
+    if (!idSelect) return;
+    setRefresh((prev) => prev + 1);
   };
 
-  // Actualizar datos globales cuando haya nuevos resultados
   useEffect(() => {
     if (consultaData.data) {
       setData(consultaData.data);
-    
     }
   }, [consultaData.data, setData]);
 
+  const handleClear = () => {
+    setIdConsulta('');
+    setIdSelect('1');
+    setRefresh((prev) => prev + 1);
+  };
+
   return (
-    
-    <Row className="align-items-center g-2">
-    <Col xs={8}>
-      <InputGroup>
-        <InputGroup.Text id="basic-addon1">Buscar Orden de Entrega</InputGroup.Text>
-        <Form.Control
-          placeholder="ODE/Despacho Id "
-          aria-label="Username"
-          aria-describedby="basic-addon1"
+    <Grid container spacing={2} alignItems="center">
+      <Grid item xs={8}>
+        <TextField
+          label="Buscar Orden de Entrega"
+          variant="outlined"
+          fullWidth
           value={idConsulta}
-          onChange={(e)=>setIdConsulta(e.target.value)}
-
+          onChange={(e) => setIdConsulta(e.target.value)}
         />
-      </InputGroup>
-    </Col>
-
-    <Col xs={1}>
-      <Form.Select aria-label="Default select ID"
-      value={idSelect}
-      onChange={(e)=>setIdSelect(e.target.value)}
-
-      >
-        <option value="1">ODE</option>
-        <option value="2">FullStar ID</option>
-      </Form.Select>
-    </Col>
-
-    <Col xs={1}>
-      <Button onClick={consultarDespacho}>Consultar</Button>
-    </Col>
-    <Col xs={1}>
-      <Button onClick={() => {
-        setIdConsulta("");
-        setIdSelect("1");
-        setRefresh(prev => prev + 1); // Forzar nueva búsqueda
-     
-      }}
-      className="btn btn-warning"
-      >
-        <GrClearOption />
-      </Button>
-    </Col>
-    <Col xs={1}>
-      <ExportExcel />
-    </Col>
-  </Row>
+      </Grid>
+      <Grid item xs={1}>
+        <FormControl fullWidth variant="outlined">
+          <InputLabel id="select-id-label">Tipo</InputLabel>
+          <Select
+            labelId="select-id-label"
+            id="select-id"
+            value={idSelect}
+            onChange={(e) => setIdSelect(e.target.value)}
+            label="Tipo"
+          >
+            <MenuItem value="1">ODE</MenuItem>
+            <MenuItem value="2">FullStar ID</MenuItem>
+          </Select>
+        </FormControl>
+      </Grid>
+      <Grid item xs={1}>
+        <Button variant="contained" onClick={consultarDespacho}>
+          Consultar
+        </Button>
+      </Grid>
+      <Grid item xs={1}>
+        <IconButton aria-label="clear" onClick={handleClear} color="warning">
+          <GrClearOption />
+        </IconButton>
+      </Grid>
+      <Grid item xs={1}>
+       <ExportExcel />
+      </Grid>
+    </Grid>
   );
 };
 
