@@ -7,7 +7,8 @@ import Despachos from '../../tracking/components/Despachos';
 
 const PageContent = ({ pathname}) => {
 
-
+  let cadena = pathname;
+  let nuevaCadena = cadena.replace("/", ""); 
   return (
   
       <Box
@@ -19,8 +20,8 @@ const PageContent = ({ pathname}) => {
           textAlign: 'center',
         }}
       >
-        <Typography>
-          <p>Contenido referente a: {pathname}</p>
+        <Typography color="text.secondary">
+          <p sx={{color:'blue'}}>Contenido referente a: {nuevaCadena}</p>
         </Typography>
  
       {pathname.startsWith('/dashboard') ? (
