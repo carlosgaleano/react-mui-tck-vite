@@ -1,0 +1,26 @@
+/**
+ * @Author: Carlos Galeano
+ * @Date:   2025-03-12 19:41:11
+ * @Last Modified by:   Carlos Galeano
+ * @Last Modified time: 2025-03-12 19:52:50
+ */
+h6.MuiTypography-root.MuiTypography-h6.css-om7st-MuiTypography-root {
+    visibility: hidden; /* Oculta el texto original */
+  }
+  
+  h6.MuiTypography-root.MuiTypography-h6.css-om7st-MuiTypography-root::before {
+    content: "Despachos"; /* Texto alternativo */
+    visibility: visible; /* Muestra el texto alternativo */
+    display: inline-block; /* Asegura que el texto alternativo se muestre correctamente */
+  }
+  
+  div[class^="css-"] > svg { /* Apunta a cualquier SVG dentro de un div con clase que empieza con "css-" */
+    display: none; /* Oculta el SVG original */
+}
+
+.clase-css-especifica::before {
+    content: "\E539"; /* Código Unicode para un icono de Material Icons */
+    font-family: "Material Icons";
+    font-size: 40px;
+    color: #007FFF;
+  }

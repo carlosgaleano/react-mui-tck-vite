@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { FaRegFileExcel } from 'react-icons/fa';
-import { Button, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress, Typography } from '@mui/material';
+import { Button, Dialog, DialogTitle, DialogContent, CircularProgress, Typography } from '@mui/material';
 import { toast } from 'react-toastify';
 import { useFetDespachoDataExcel } from '../hooks/useFetDespachoDataExcel';
 
@@ -12,84 +12,53 @@ const ExportExcel = (filtro = null) => {
   const [dataExcel, setDataExcel] = useState(null);
   const [refresh, setRefresh] = useState(0);
   const isGenerating = useRef(false);
-  const [exportTriggered, setExportTriggered] = useState(false);
 
   const getDataExcel = useFetDespachoDataExcel(refresh);
 
-  useEffect(() => {
-    if (exportTriggered) {
-      if (getDataExcel.data && !isGenerating.current) {
-        isGenerating.current = true;
-        setDataExcel(getDataExcel.data);
-        generateExcel(getDataExcel.data);
-      } else if (getDataExcel.error) {
-        console.error('API Error:', getDataExcel.error);
-        toast.error(`Error: ${getDataExcel.error.message}`);
-        setShowModal(false);
-        setMessage('Error al obtener los datos.');
-        isGenerating.current = false;
-      } else if (getDataExcel.loading) {
-        setMessage('Cargando datos...');
-      }
-      setExportTriggered(false);
-    }
-  }, [getDataExcel, exportTriggered]);
-
-  const exportToExcel = (data, fileName) => {
-    console.log('exporToExcel ejecutado');
-    const fileType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
-    const fileExtension = '.xlsx';
-
-    const ws = XLSX.utils.json_to_sheet(data);
-
-    const header = Object.keys(data[0]);
-    const headerCellStyle = {
-      font: { bold: true },
-      fill: { fgColor: { rgb: '00FFFF' } },
-    };
-
-    header.forEach((col, index) => {
-      const cellAddress = XLSX.utils.encode_cell({ c: index, r: 0 });
-      ws[cellAddress].v = col.toUpperCase();
-      ws[cellAddress].s = headerCellStyle;
-    });
-
-    const wb = { Sheets: { data: ws }, SheetNames: ['data'] };
-    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-    const blob = new Blob([excelBuffer], { type: fileType });
-
-    saveAs(blob, fileName + fileExtension);
-    isGenerating.current = false;
+  const handleExport = () => {
+    console.log('Botón exportar pulsado');
+    setShowModal(true);
+    setMessage('Obteniendo datos...');
+    setRefresh((prev) => prev + 1);
   };
+
+  useEffect(() => {
+    console.log('Efecto ejecutado con getDataExcel:', getDataExcel);
+
+    if (getDataExcel.loading) {
+      setMessage('Cargando datos...');
+    } else if (getDataExcel.error) {
+      console.error('API Error:', getDataExcel.error);
+      toast.error(`Error: ${getDataExcel.error.message}`);
+      setShowModal(false);
+    } else if (getDataExcel.data && !isGenerating.current) {
+      console.log('Datos obtenidos, generando Excel...');
+      isGenerating.current = true;
+      setDataExcel(getDataExcel.data);
+      generateExcel(getDataExcel.data);
+    }
+  }, [getDataExcel]);
 
   const generateExcel = (data) => {
     if (!data || data.length === 0) {
-      console.warn('No data to export.');
-      toast.warn('No hay datos para exportar.');
+      toast.error('No hay datos para exportar.');
       setShowModal(false);
-      isGenerating.current = false;
       return;
     }
 
-    setMessage('Generando Archivo Excel...');
-    exportToExcel(data, 'my_excel_file');
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Despacho');
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
 
-    setTimeout(() => {
-      setShowModal(false);
-      toast.success('Archivo generado correctamente.');
-    }, 1500);
-  };
-
-  const handleExport = () => {
-    setShowModal(true);
-    setMessage('Obteniendo datos...');
-    toast.info('Generando archivo Excel...');
-    setRefresh((prevRefresh) => prevRefresh + 1);
-    setExportTriggered(true);
+    saveAs(blob, 'despacho.xlsx');
+    setShowModal(false);
+    isGenerating.current = false;
   };
 
   return (
-    <div>
+    <>
       <Button variant="contained" color="success" onClick={handleExport}>
         <FaRegFileExcel />
       </Button>
@@ -97,14 +66,11 @@ const ExportExcel = (filtro = null) => {
       <Dialog open={showModal} onClose={() => setShowModal(false)}>
         <DialogTitle>Generando Excel</DialogTitle>
         <DialogContent>
-          {message === 'Cargando datos...' && <CircularProgress />}
+          {getDataExcel.loading && <CircularProgress />}
           <Typography>{message}</Typography>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowModal(false)}>Cerrar</Button>
-        </DialogActions>
       </Dialog>
-    </div>
+    </>
   );
 };
 

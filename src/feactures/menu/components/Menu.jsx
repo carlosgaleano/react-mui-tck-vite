@@ -14,6 +14,18 @@ import { DashboardLayout } from '@toolpad/core/DashboardLayout';
 import { useDemoRouter } from '@toolpad/core/internal';
 import DashboardDespachos from '../../Dashboard/components/DashboardDespachos';
 import PageContent from './PageContent';
+import { styled } from '@mui/material/styles';
+import './menu.css';
+import { FiTruck } from 'react-icons/fi'; 
+
+const StyledTypography = styled(Typography)(({ theme }) => ({
+  visibility: 'hidden',
+  '&::before': {
+    content: '"Nuevo Texto"',
+    visibility: 'visible',
+    display: 'inline-block',
+  },
+}));
 
 
 

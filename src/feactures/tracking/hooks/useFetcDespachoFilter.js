@@ -15,13 +15,15 @@ export const useEffectDespachosFilter = (page , idConsulta, idSelect, refresh) =
    const { loading, setLoading } = useAuthStore(); 
   
     useEffect(() => {
+      const controller = new AbortController(); // Creamos un AbortController
+      const signal = controller.signal; // Obtenemos la señal
       let isActive = true;
       setLoading(true);
       setState(prev => ({ ...prev, data: [] })); // Limpiar datos previos
       
       getDespachos(page, idConsulta, idSelect)
         .then(despachos => {
-          if (isActive) {
+          if (isActive && !signal.aborted) {
             setState({
               data: Object.values(despachos.data),
               totalPage: despachos.last_page,

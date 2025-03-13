@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { getDespachoDetalle } from "../helpers/getDespachoDetalle";
+import {useAuthStore} from '../../../feactures/auth/store/auth'; 
 
-export const useEffectGetDespachoDetalle = (page,setpending,despachoId) => {
+export const useEffectGetDespachoDetalle = (page,despachoId) => {
   const [state, setState] = useState({
     data: [],
     totalRow:null,
@@ -10,8 +11,11 @@ export const useEffectGetDespachoDetalle = (page,setpending,despachoId) => {
     
   
   });
+  const { loading, setLoading } = useAuthStore(); 
  // setpending(true);
   useEffect(() => {
+    let isActive = true;
+    setLoading(true);
     getDespachoDetalle(page,despachoId)
     .then((despachos) => {
       console.log("paged", page, "response", despachos, "numero", despachos.current_page);
@@ -24,9 +28,22 @@ export const useEffectGetDespachoDetalle = (page,setpending,despachoId) => {
         rowsPerPage:despachos?.per_page
         
       });
-      setpending(false);
+     
+    }) .catch((error) => {
+      if (isActive) {
+          if (error.name === 'AbortError') {
+              console.log('Fetch aborted');
+              return; // Salimos del catch si es un error de aborto
+          }
+        console.error("Error fetching despachos:", error);
+      }
+    })
+    .finally(() => {
+      if (isActive) {
+        setLoading(false);
+      }
     });
-  }, [page,despachoId,setpending]);
+  }, [page,despachoId]);
 
   return state;
 };

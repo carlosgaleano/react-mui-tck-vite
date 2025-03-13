@@ -22,9 +22,12 @@ const PageContent = ({ pathname}) => {
         <Typography>
           <p>Contenido referente a: {pathname}</p>
         </Typography>
-        {pathname.startsWith('/dashboard') ? (
-          <Despachos />
-        ) : null}
+ 
+      {pathname.startsWith('/dashboard') ? (
+        <DashboardDespachos />
+      ) : pathname.startsWith('/orders') ? (
+        <Despachos />
+      ) : null}
       </Box>
   );
 };
