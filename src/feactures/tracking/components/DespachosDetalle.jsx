@@ -9,9 +9,10 @@ import { DataGrid } from '@mui/x-data-grid';
 import { useEffectGetDespachoDetalle } from '../hooks/useFetchDespachoDetalle';
 import { useAuthStore } from '../../../feactures/auth/store/auth';
 import { useEffectDespachos } from '../hooks/useFetchDespachos';
+import moment from 'moment';
+
 const DespachosDetalle = (props) => {
   const [page, setpage] = useState(1);
-
   const [despachoid, setDespachoID] = useState(null);
   const [dataTable1, setData] = useState([]);
   const { loading } = useAuthStore();
@@ -21,21 +22,34 @@ const DespachosDetalle = (props) => {
     console.log('Despacho_ID:', props.row?.Despacho_ID);
   }, [props.row]);
 
+  const fechaFormat = (fecha) => {
+    if (fecha) {
+      return moment(fecha).format('DD/MM/YYYY HH:mm:ss');
+    }
+    return null;
+  };
 
- 
   const { data, currentPage, totalrow, totalPage, rowsPerPage } = useEffectGetDespachoDetalle(page, despachoid);
 
   useEffect(() => {
-    if (data) {
+    if (data && Array.isArray(data)) {
       setData(data);
       console.log('Data:', data);
+    } else {
+      setData([]); // Asegurar que dataTable1 sea un array, incluso si data es null o undefined
     }
-  }, [data,loading]);
+  }, [data]);
 
-  
   const columns = [
     { field: 'nombre_estado_tracking', headerName: 'Estado', width: 200 },
-    { field: 'DT_Status', headerName: 'Fecha despacho', width: 250 },
+    {
+      field: 'DT_Status',
+      headerName: 'Fecha despacho',
+      width: 250,
+      renderCell: (params) => {
+        return <span>{moment(params.value).format('DD/MM/YYYY HH:mm:ss')}</span>;
+      },
+    },
     {
       field: 'observacion',
       headerName: 'Observación',
@@ -44,14 +58,13 @@ const DespachosDetalle = (props) => {
         if (params && params.row) {
           return params.row?.estado_observacion ? params.row?.estado_observacion : params.row?.comentario_despacho || '-';
         }
-        return '-'; // Valor predeterminado si params o params.row son undefined
+        return '-';
       },
     },
   ];
 
   return (
     <Box>
-      
       <Box mt={2} style={{ height: 400, width: '100%' }}>
         {loading ? (
           <Box display="flex" justifyContent="center" alignItems="center" height="100%">
@@ -59,7 +72,7 @@ const DespachosDetalle = (props) => {
           </Box>
         ) : (
           <DataGrid
-            rows={dataTable1 }
+            rows={dataTable1}
             columns={columns}
             getRowId={(row) => row.id}
             loading={loading}
@@ -69,7 +82,6 @@ const DespachosDetalle = (props) => {
           />
         )}
       </Box>
-    
     </Box>
   );
 };

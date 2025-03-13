@@ -10,6 +10,7 @@ import ExcelReader from './ExcelReader';
 import FiltroDespachos from './FiltroDespachos';
 import { useAuthStore } from '../../../feactures/auth/store/auth';
 import { Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import moment from 'moment';
 
 const DataGridDespachos = () => {
   const [modalShow, setModalShow] = useState(false);
@@ -38,13 +39,10 @@ const DataGridDespachos = () => {
     { field: 'Direccion', headerName: 'Dirección', width: 250 },
     {field: 'fecha_st',
     headerName: 'Fecha despacho',
-    type: 'dateTime',
-    valueGetter: (params) => {
-      if (params.row && params.row.fecha_st) {
-        return new Date(params.row.fecha_st);
-      }
-      return null; // Or some default value
-    },
+    width: 250,
+    renderCell: (params) => {
+           return <span>{moment(params.value).format('DD/MM/YYYY HH:mm:ss')}</span>;
+         },
     sortable: true,
   },
     { field: 'estado_out', headerName: 'Estado', width: 150 },
